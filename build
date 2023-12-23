@@ -7,16 +7,19 @@ KERNEL_SOURCE=https://github.com/negrroo/LawRun_realme_sdm710
 KERNEL_BRANCH=bakk
 KERNEL_DEFCONFIG=LawRun_defconfig
 
-# Prebuilt Proton Clang Toolchain
-CLANG=https://github.com/kdrag0n/proton-clang.git
-CLANG_BRANCH=master
+# Prebuilt Clang Toolchain (AOSP)
+CLANG_URL=https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android12-release/clang-r416183b.tar.gz
+
+# Prebuilt GCC Utilities (AOSP)
+GCC_x64=https://github.com/1petro/GCC_4.9
+GCC_BRANCH=main
 
 # Setup make Command
 make_fun() {
-  make O=out ARCH=arm64 CC=clang \
-       LLVM=1 LLVM_IAS=1 \
-       CROSS_COMPILE=aarch64-linux-gnu- \
-       CROSS_COMPILE_ARM32=arm-linux-gnueabi- "$@"
+  make O=out ARCH=arm64 \
+       CC=clang HOSTCC=clang LLVM=1 \
+       CLANG_TRIPLE=aarch64-linux-gnu- \
+       CROSS_COMPILE=aarch64-linux-android- "$@"
 }
 
 # Work Path
@@ -33,11 +36,12 @@ mkdir -p "${WORK}"
 cd "${WORK}" || exit 1
 
 # Cloning all the Necessary files
-[ ! -d clang ] && git clone --depth=1 "${CLANG}" -b "${CLANG_BRANCH}" ./clang
+if [ ! -d clang ]; then mkdir clang && curl -Lsq "${CLANG_URL}" -o clang.tgz && tar -xzf clang.tgz -C clang; fi
+[ ! -d x64 ] && git clone --depth=1 "${GCC_x64}" -b "${GCC_BRANCH}" ./x64
 [ ! -d "${KERNEL}" ] && git clone --depth=1 "${KERNEL_SOURCE}" -b "${KERNEL_BRANCH}" "${KERNEL}"
 
 # Setting Toolchain Path
-PATH="${WORK}/clang/bin:$PATH"
+PATH="${WORK}/clang/bin::${WORK}/x64/bin:$PATH"
 
 # Enter Kernel root directory
 cd "${KERNEL_SRC}" || exit 1
