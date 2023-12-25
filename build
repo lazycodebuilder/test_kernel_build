@@ -7,24 +7,32 @@ KERNEL_SOURCE=https://github.com/negrroo/LawRun_realme_sdm710
 KERNEL_BRANCH=bakk
 KERNEL_DEFCONFIG=LawRun_defconfig
 
+
+# Prebuilt Voltex Clang Toolchain
+CLANG=https://github.com/vijaymalav564/vortex-clang.git
+CLANG_BRANCH=master
+
+# Prebuilt Proton Clang Toolchain
+#CLANG=https://github.com/kdrag0n/proton-clang.git
+#CLANG_BRANCH=master
+
 # Prebuilt Clang Toolchain (AOSP)
-CLANG_URL=https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android12-release/clang-r416183b.tar.gz
+#CLANG_URL=https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android12-release/clang-r416183b.tar.gz
 
 # Prebuilt GCC Utilities (AOSP)
 #GCC_x64=https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
 #GCC_x32=https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9
 #GCC_BRANCH=android12-release
 
-GCC_x64=https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/0d0a573f4295719e0dacf298be83bd48e9a9bb6d.tar.gz
-GCC_x32=https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/heads/brillo-m7-dev.tar.gz
+#GCC_x64=https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/0d0a573f4295719e0dacf298be83bd48e9a9bb6d.tar.gz
+#GCC_x32=https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/heads/brillo-m7-dev.tar.gz
 
 # Setup make Command
 make_fun() {
   make O=out ARCH=arm64 \
-       CC=clang HOSTCC=clang LLVM=1 \
-       CLANG_TRIPLE=aarch64-linux-gnu- \
-       CROSS_COMPILE=aarch64-linux-android- \
-       CROSS_COMPILE_ARM32=arm-linux-androideabi- "$@"
+       CC=clang HOSTCC=clang \
+       CROSS_COMPILE=aarch64-linux-gnu- \
+       CROSS_COMPILE_ARM32=arm-linux-gnueabi- "$@"
 }
 
 # Work Path
@@ -41,15 +49,16 @@ mkdir -p "${WORK}"
 cd "${WORK}" || exit 1
 
 # Cloning all the Necessary files
-if [ ! -d clang ]; then mkdir clang && curl -Lsq "${CLANG_URL}" -o clang.tgz && tar -xzf clang.tgz -C clang; fi
-if [ ! -d x64 ]; then mkdir x64 && curl -Lsq "${CLANG_URL}" -o x64.tgz && tar -xzf x64.tgz -C x64; fi
-if [ ! -d x32 ]; then mkdir x32 && curl -Lsq "${CLANG_URL}" -o x32.tgz && tar -xzf x32.tgz -C x32; fi
+#if [ ! -d clang ]; then mkdir clang && curl -Lsq "${CLANG_URL}" -o clang.tgz && tar -xzf clang.tgz -C clang; fi
+#if [ ! -d x64 ]; then mkdir x64 && curl -Lsq "${CLANG_URL}" -o x64.tgz && tar -xzf x64.tgz -C x64; fi
+#if [ ! -d x32 ]; then mkdir x32 && curl -Lsq "${CLANG_URL}" -o x32.tgz && tar -xzf x32.tgz -C x32; fi
 #[ ! -d x64 ] && git clone --depth=1 "${GCC_x64}" -b "${GCC_BRANCH}" ./x64
 #[ ! -d x32 ] && git clone --depth=1 "${GCC_x32}" -b "${GCC_BRANCH}" ./x32
+[ ! -d clang ] && git clone --depth=1 "${CLANG}" -b "${CLANG_BRANCH}" ./clang
 [ ! -d "${KERNEL}" ] && git clone --depth=1 "${KERNEL_SOURCE}" -b "${KERNEL_BRANCH}" "${KERNEL}"
 
 # Setting Toolchain Path
-PATH="${WORK}/clang/bin::${WORK}/x64/bin:${WORK}/x32/bin:/bin"
+PATH="${WORK}/clang/bin:$PATH"
 
 # Enter Kernel root directory
 cd "${KERNEL_SRC}" || exit 1
